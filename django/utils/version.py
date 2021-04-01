@@ -13,6 +13,7 @@ PY36 = sys.version_info >= (3, 6)
 PY37 = sys.version_info >= (3, 7)
 PY38 = sys.version_info >= (3, 8)
 PY39 = sys.version_info >= (3, 9)
+PY310 = sys.version_info >= (3, 10)
 
 
 def get_version(version=None):
@@ -78,7 +79,7 @@ def get_git_changeset():
     """
     repo_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     git_log = subprocess.run(
-        ['git', 'log', '--pretty=format:%ct', '--quiet', '-1', 'HEAD'],
+        'git log --pretty=format:%ct --quiet -1 HEAD',
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         shell=True, cwd=repo_dir, universal_newlines=True,
     )

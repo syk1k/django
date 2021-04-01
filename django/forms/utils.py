@@ -92,6 +92,11 @@ class ErrorList(UserList, list):
     def as_data(self):
         return ValidationError(self.data).error_list
 
+    def copy(self):
+        copy = super().copy()
+        copy.error_class = self.error_class
+        return copy
+
     def get_json_data(self, escape_html=False):
         errors = []
         for error in self.as_data():
@@ -156,6 +161,11 @@ def from_current_timezone(value):
     if settings.USE_TZ and value is not None and timezone.is_naive(value):
         current_timezone = timezone.get_current_timezone()
         try:
+            if (
+                not timezone._is_pytz_zone(current_timezone) and
+                timezone._datetime_ambiguous_or_imaginary(value, current_timezone)
+            ):
+                raise ValueError('Ambiguous or non-existent time.')
             return timezone.make_aware(value, current_timezone)
         except Exception as exc:
             raise ValidationError(

@@ -1,9 +1,9 @@
-from django.db.models.expressions import F, OrderBy
+from django.db.models import F, OrderBy
 
 
 class OrderableAggMixin:
 
-    def __init__(self, expression, ordering=(), **extra):
+    def __init__(self, *expressions, ordering=(), **extra):
         if not isinstance(ordering, (list, tuple)):
             ordering = [ordering]
         ordering = ordering or []
@@ -12,7 +12,7 @@ class OrderableAggMixin:
             (OrderBy(F(o[1:]), descending=True) if isinstance(o, str) and o[0] == '-' else o)
             for o in ordering
         )
-        super().__init__(expression, **extra)
+        super().__init__(*expressions, **extra)
         self.ordering = self._parse_expressions(*ordering)
 
     def resolve_expression(self, *args, **kwargs):
@@ -24,7 +24,7 @@ class OrderableAggMixin:
             ordering_params = []
             ordering_expr_sql = []
             for expr in self.ordering:
-                expr_sql, expr_params = expr.as_sql(compiler, connection)
+                expr_sql, expr_params = compiler.compile(expr)
                 ordering_expr_sql.append(expr_sql)
                 ordering_params.extend(expr_params)
             sql, sql_params = super().as_sql(compiler, connection, ordering=(

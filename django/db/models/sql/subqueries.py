@@ -21,7 +21,10 @@ class DeleteQuery(Query):
         self.alias_map = {table: self.alias_map[table]}
         self.where = where
         cursor = self.get_compiler(using).execute_sql(CURSOR)
-        return cursor.rowcount if cursor else 0
+        if cursor:
+            with cursor:
+                return cursor.rowcount
+        return 0
 
     def delete_batch(self, pk_list, using):
         """
@@ -154,6 +157,6 @@ class AggregateQuery(Query):
 
     compiler = 'SQLAggregateCompiler'
 
-    def add_subquery(self, query, using):
-        query.subquery = True
-        self.subquery, self.sub_params = query.get_compiler(using).as_sql(with_col_aliases=True)
+    def __init__(self, model, inner_query):
+        self.inner_query = inner_query
+        super().__init__(model)
